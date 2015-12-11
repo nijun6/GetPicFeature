@@ -27,7 +27,7 @@ public:
 		reverse(t.begin(), t.end());
 		return s + t;
 	}
-	static double getBoxaSkew(Boxa* boxa) {
+	static double getBoxaSkew(Boxa* boxa) {/*
 		vector<vector<Box*> > near; //3 height nearby's neighbors
 		Boxa* sort_boxa = boxaSort(boxa, L_SORT_BY_Y, L_SORT_INCREASING, NULL);
 		for (int i = 0; i < sort_boxa->n; i++) {
@@ -40,8 +40,8 @@ public:
 					break;
 				if (b->w*b->h*3 < ib->w*ib->h || b->w*b->h > 3*ib->w*ib->h)
 					continue;
-				int dis = sqrt((b->y - ib->y)*(b->y - ib->y)
-						+(b->x - ib->x)*(b->x - ib->x));
+				int dis = sqrt(double((b->y - ib->y)*(b->y - ib->y)
+						+(b->x - ib->x)*(b->x - ib->x)));
 				if (dis < 3*ib->h) {
 					v.push_back(b);
 				}
@@ -52,7 +52,8 @@ public:
 		}
 
 		boxaDestroy(&sort_boxa);
-		return getAverageSkew(near);
+		return getAverageSkew(near);*/
+		return 0.0;
 	}
 
 private:

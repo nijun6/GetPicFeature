@@ -96,8 +96,6 @@ void open(char* file, Pix*& pix, cv::Mat& img) {
 		return ;
 	}
 	img = cv::imread(file);
-	cout << img.size() << endl;
-	cout << img.depth() << endl;
 	pix = pixCreateHeader(img.size().width, img.size().height, image->depth);
 	pix->data = (l_uint32*)img.data;
 }
