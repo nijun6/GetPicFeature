@@ -132,14 +132,19 @@ string verticalProjectFeaScale(Pix* pix, Boxa* words, int scale_factor, int word
 
 		while (i < j) {
 
-			Pix* p = pixScale()
+			//Pix* p = pixScale()
 		}
 	}
 }
 
 /*
- * vertical project feature
+ * function: get vertical project feature
+ * pix: input picture
+ * words: words position
+ * scale_factor: the factor of the normalized
+ * word_len: the size compress to of the original word
  *
+ * return value: the code of all the words
  * */
 string verticalProjectFea(Pix* pix, Boxa* words, int scale_factor, int word_len) {
 	if (words->n <= 0) {
@@ -154,7 +159,7 @@ string verticalProjectFea(Pix* pix, Boxa* words, int scale_factor, int word_len)
 		int*col = new int[b->w];
 		memset(col, 0, sizeof(int)*b->w);
 		int sum = 1;
-		for (int x = b->x+1; x < b->x + b->w; x++) {
+		for (int x = b->x+1; x < b->x + b->w-1; x++) {
 			for (int y = b->y+1; y < b->y + b->h; y++) {
 				l_uint32 v;
 				pixGetPixel(p, x, y, &v);
@@ -163,21 +168,8 @@ string verticalProjectFea(Pix* pix, Boxa* words, int scale_factor, int word_len)
 				sum += 255 - v;
 			}
 		}
-		int cl[100] = {};
-		double step = (b->w - 2) / word_len;
-		double p = step;
-		int cnt = 0;
-		for (int j = 0; j < b->w - 2; j++) {
-			if (j > p) {
-				cl[cnt] += col[j] + (col[j] - col[j-1])*(p - int(p));
-				cl[cnt+1]+= col[j] + (col[j] - col[j-1])*(1 - p + int(p));
-				p += step;
-				cnt++;
-			}
-			cl[cnt] += col[j];
-		}
-		for (int j = 0; j < word_len; j++) {
-			res += Util::codeToText(scale_factor*cl[j]/sum);
+		for (int j = 0; j < b->w-2; j++) {
+			res += Util::codeToText(scale_factor*col[j]/sum);
 		}
 		if (b->x < lastx)
 			res += '\n';
@@ -190,23 +182,135 @@ string verticalProjectFea(Pix* pix, Boxa* words, int scale_factor, int word_len)
 	return res;
 }
 
+/*
+ *
+ * */
+void getCandidatePos(int** p, int size, int d, float min_scale, vector<int>& out) {
+	int* pj = new int[size];
+	memset(pj, 0, sizeof(int)*size);
+
+	if (d == 1) {
+		for (int x = 0; x < size; x++) {
+			for (int y = 0; y < size; y++) {
+				pj[x] += p[x][y];
+			}
+		}
+	} else if (d == 2) {
+		for (int x = 0; x < size; x++) {
+			for (int y = 0; y < size; y++) {
+				pj[y] += p[x][y];
+			}
+		}
+	}
+	int pre_height = 0;
+	int up = 0, down = 0, up_i;
+	for (int i = 0; i < size; i++) {
+		if (pj[i] - pre_height >= min_scale*size) {
+			up = 1;
+			up_i = i;
+		}
+		if (pre_height - pj[i] >= min_scale*size
+				&& i - up_i < min_scale*size
+				&& up_i == 1) {
+			down = 1;
+		}
+		if (i - up_i >= min_scale*size) {
+			up = 0;
+		}
+		if (up && down) {
+			out.push_back((up_i + i)/2);
+			up = down = 0;
+		}
+		pre_height = pj[i];
+	}
+	delete[] pj;
+}
+/*
+ * function: get lines number in the word
+ * pix: input picture
+ * word: position of the word
+ * dir:direction of line want to get
+ * 		1 : wants to get vertical lines number
+ * 		2 : wants to get horizontal lines number
+ *
+ * return value: the lines number on that direction:
+ * */
+int getWordLine(Pix* pix, Box* word, int dir, float min_scale) {
+	int size = word->h > word->w ? word->h : word->w;
+	int** p = new int*[size];
+	for (int i = 0; i < size; i++) {
+		p[i] = new int[size];
+		for (int j = 0; j < size; j++) {
+			unsigned int v;
+			if (i < word->w && j < word->h) {
+				pixGetPixel(pix, word->x+j, word->y+i, &v);
+				p[i][j] = v;
+			}
+		}
+	}
+
+	vector<int> candidate_word_pos;
+	getCandidatePos(p, size, dir, min_scale, candidate_word_pos);
+
+	for (int i = 0; i < size; i++) {
+		delete[] p[i];
+	}
+	delete[] p;
+
+	return candidate_word_pos.size();
+}
+
+
+string wordsFea(Pix* pix, Boxa* words, float min_scale) {
+	if (pix == NULL || words == NULL || words->n <= 0)
+		return "error:words is null or words->n is 0";
+	Pix* bpix = pixConvertTo1(pix, 130);
+	string res;
+	for (int i = 0; i < words->n; i++) {
+		res += Util::codeToText(getWordLine(bpix, boxaGetBox(words, i , L_CLONE), 0, min_scale));
+		res += Util::codeToText(getWordLine(bpix, boxaGetBox(words, i , L_CLONE), 1, min_scale));
+		res += " ";
+	}
+	pixDestroy(&bpix);
+	return res;
+}
+
+void test() {
+	Pix* p = pixRead("/home/nijun/OCR_PIC/20公文/7.png");
+	Pix* bp = pixConvertTo1(p,255);
+	pixWrite("/home/nijun/OCR_PIC/20公文/7b.jpg", bp, IFF_JFIF_JPEG);
+	pixDestroy(&p);
+	pixDestroy(&bp);
+	getchar();
+}
+
+void testWriteBoxa(Pix*p, Boxa* words) {
+	Pix* pw = pixDrawBoxa(p, words, 1, 0x00ff0000);
+	pixWrite("withboxs.jpg", pw, IFF_JFIF_JPEG);
+	printf("write over.");
+	getchar();
+}
+
 int main(int argc, char** argv) {
+	//test();
 	if (argc < 2) {
 		fprintf(stderr, "wrong arguments\n");
 		return -1;
 	}
 	Pix* pix = NULL;
 	IplImage* image = NULL;
-	//cv::Mat mat;
-	//open(argv[1], pix, mat);
-	//cout << pix->w << " " << pix->h << endl;
+//	cv::Mat mat;
+//	open(argv[1], pix, mat);
+//	cout << pix->w << " " << pix->h << endl;
 	pix = pixRead(argv[1]);
 	Boxa* lines = NULL, *words = NULL;
 	int scale_factor = atoi(argv[2]);
 	TST tst;
 	tst.getLineAndWordsLayout(pix, lines, words);
+	testWriteBoxa(pix, words);
 	//outPutLineAndWordsLayot(lines, words, 10);
 	cout << "verticalProjectFea:" << verticalProjectFea(pix, words, scale_factor, 10) << endl;
+	cout << "wordsFea:" << wordsFea(pix, words, 0.3) << endl;
 	pixDestroy(&pix);
 	boxaDestroy(&lines);
 	boxaDestroy(&words);
