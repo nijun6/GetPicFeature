@@ -100,41 +100,6 @@ void open(char* file, Pix*& pix, cv::Mat& img) {
 }
 
 /*
- *
- * vertical project feature with scale the pic to word_len
- *
- *
- * */
-string verticalProjectFeaScale(Pix* pix, Boxa* words, int scale_factor, int word_len) {
-	if (words->n <= 0) {
-		return "";
-	}
-
-	int max_h;
-	int i = 0, j;
-	while (i < words->n) {
-		Box* b = boxaGetBox(words, i, L_CLONE);
-		int lastx = b->x;
-		max_h = b->h;
-		j = i + 1;
-		while (j < words->n) {
-			Box* jb = boxaGetBox(words, j, L_CLONE);
-			if (jb->x < lastx)
-				break;
-			lastx = jb->x;
-			if (jb->h > max_h)
-				max_h = jb->h;
-			j++;
-		}
-
-		while (i < j) {
-
-			//Pix* p = pixScale()
-		}
-	}
-}
-
-/*
  * function: get vertical project feature
  * pix: input picture
  * words: words position
@@ -287,7 +252,7 @@ void testWriteBoxa(Pix*p, Boxa* words) {
 	getchar();
 }
 
-int main(int argc, char** argv) {
+int main_bak(int argc, char** argv) {
 	//test();
 	if (argc < 2) {
 		fprintf(stderr, "wrong arguments\n");

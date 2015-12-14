@@ -283,4 +283,30 @@ namespace Util {
 
 	}  
 
+	Pix* getRange(Pix* pix, Box* box) {
+		Pix* pr = pixCreate(box->w, box->h, pix->d);
+		for (int i = 0; i < box->w; i++) {
+			for (int j = 0; j < box->h; j++) {
+				unsigned int v;
+				pixGetPixel(pix, i, j, &v);
+				pixSetPixel(pr, i, j, v);
+			} 
+		}
+		return pr;
+	}
+
+
+	Pix* getPixFromIplImage( IplImage* cvimg ) {
+		if (cvimg->depth != IPL_DEPTH_8U) {
+			fprintf(stderr, "error the input IplImage is not IPL_DEPTH_8U\n");
+			return NULL;
+		}
+		#define S(image,x,y) ((uchar*)(image->imageData + image->widthStep*(y)))[(x)]
+		Pix* pix = pixCreate(cvimg->width, cvimg->height, cvimg->depth);
+		for (int x = 0; x < cvimg->width; x++) {
+			for (int y = 0; y < cvimg->height; y++) {
+				pixSetPixel(pix, x, y, S(cvimg, x, y));
+			}
+		}
+	}
 }

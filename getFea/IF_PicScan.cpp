@@ -2,20 +2,109 @@
 #include "IF_BaseScan.h"
 #include "IF_PicScan.h"
 #include "util.h"	
+#include "allheaders.h"
 
 IF_PicScan::IF_PicScan(string libPath): BaseScan(libPath) {
 	cout << "libpath = " << this->libPath << endl;
 }
+IF_PicScan::~IF_PicScan() {
+
+}
 
 int IF_PicScan::extractFeature(struct FileInfo pf) {
-	IplImage* cvimg;
 	Util::readImageFromMemory(pf.plainContent, pf.length, cvimg);
+	img = Util::getPixFromIplImage(cvimg);
+	
+	cvReleaseImage(&cvimg);
+	pixDestroy(&img);
 	return 1;
 }
 
 ScanResult IF_PicScan::matchFeature(struct FileInfo pf) {
 	ScanResult sr;
 	return sr;
+}
+
+/*
+	code the word positions
+*/
+string IF_PicScan::codeWord(Boxa* words) {
+	if (words->n <= 0) {
+		return "";
+	}
+	Box* last = boxaGetBox(words, 0, L_CLONE);
+	string wordscode;
+	int lcnt = 0;
+	for (int i = 1; i < words->n; i++) {
+		Box* b = boxaGetBox(words, i, L_CLONE);
+		lcnt++;
+		if (b->y < last->y - 0.3*last->h || i == words->n - 1) {
+			wordscode += Util::codeToText(lcnt);
+			lcnt = 0;
+			if (b->x < last->x)
+				lcnt++;
+		}
+		last = boxaGetBox(words, i, L_CLONE);
+	}
+	return wordscode;
+}
+
+
+int IF_PicScan::averWordsGap(Boxa* words) {
+	Box* last = boxaGetBox(words, 0, L_CLONE);
+	int ave_words_gap = 0;
+	int gap_cnt = 0;
+
+	//suppose the first word is a normal word not a punctuation
+	int word_height = last->h;
+	for (int i = 1; i < words->n; i++) {
+		Box* b = boxaGetBox(words, i, L_CLONE);
+		if (last == NULL) {
+			last = b;
+			continue;
+		}
+
+		if (b->x < last->x) {
+			last = b;
+			continue;
+		}
+
+		if (b->h < max_punctuation_height*word_height) {
+			last = NULL;
+			continue;
+		}
+
+		if (last->w > min_word_width*last->h || b->w > min_word_width*b->h) {
+			ave_words_gap += b->x - last->w;
+			gap_cnt++;
+		}
+	}
+	return ave_words_gap/gap_cnt;
+}
+
+/*
+	code the sentence 
+*/
+string IF_PicScan::codeSentence(Boxa* words) {
+	if (words->n == 0) {
+		return "";
+	}
+	string res;
+
+	Box* last = boxaGetBox(words, 0, L_CLONE);
+	int cnt = 1;
+	for (int i = 1; i < words->n; i++) {
+		Box* b = boxaGetBox(words, i, L_CLONE);
+		if (b->x < last->x  || b->x - last->x - last->w > b->h*max_word_gap) {
+			res += Util::codeToText(cnt);
+			cnt = 1;
+		} else {
+			cnt++;
+		}
+		last = b;
+	}
+	res += cnt;
+	return res;
 }
 
 string IF_PicScan::codeLine(Boxa* lines) {
@@ -48,9 +137,48 @@ string IF_PicScan::codeLine(Boxa* lines) {
 	return lineres;
 }
 
-string IF_PicScan::codeWord(Boxa* words) {
+/*
+	get the projection feature of the regions
+	input: 
+		Pix* pix        input image
+		Boxa* regions   regions to extract feature
+		int scale_factor [1,25]
+		int word_height  :destination reginon height
 
-}
-string IF_PicScan::verticalProjectFea(Pix* pix, Boxa* reginos, int scale_factor, int word_len) {
+	return: the code represents the projection fea
+*/
+string IF_PicScan::verticalProjectFea(Pix* pix, Boxa* reginos, int scale_factor, int word_height) {
+	if (reginos->n == 0) {
+		return "";
+	}
+	string res;
+	for (int i = 0; i < reginos->n; i++) {
+		Box* b = boxaGetBox(reginos, i, L_CLONE);
+		Pix* region = Util::getRange(pix, b);
+		float scale = 1.0*word_height/region->h;
+		pixScale(region, scale, scale);
+		int col_project[max_img_width] = {};
+		for (int y = 0; y < region->h; y++) {
+			for (int x = 0; x < region->w; x++) {
+				unsigned int v;
+				pixGetPixel(region, x, y, &v);
+				col_project[y] += 255 - v;
+			}
+		}
+		
+		string tmp = Util::codeToText(col_project[0]/255);
+		int last = col_project[0] + 1;
+		for (int c = 1; c < region->w; c++) {
+			double t = 1.0*col_project[c]/last;
+			if (t > 1.0)
+				t = 1.0/t;
+			tmp += Util::codeToText(scale_factor*t);
+			last = col_project[c];
+			if (last == 0)
+				last = 1;
+		}
+		res += tmp + " ";
+	}
 
+	return res;
 }

@@ -43,5 +43,9 @@ namespace Util {
 		output: text picture with skew angle 0
 	*/
 	Pix* skewCorrect(Pix* origin);
+
+	Pix* getRange(Pix* pix, Box* box);
+
+	Pix* getPixFromIplImage( IplImage* cvimg );
 }
 #endif
