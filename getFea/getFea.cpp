@@ -78,7 +78,6 @@ void outPutLineAndWordsLayot(Boxa* lines, Boxa* words, int scale_factor){
 	cout << "words_code:" + codeWords(words) << endl;
 }
 
-
 void open(char* file, Pix*& pix, IplImage*& image) {
 	image = cvLoadImage(file);
 	if (pix) {
@@ -144,16 +143,16 @@ string verticalProjectFeaScale(Pix* pix, Boxa* words, int scale_factor, int word
  *
  * return value: the code of all the words
  * */
-string verticalProjectFea(Pix* pix, Boxa* words, int scale_factor, int word_len) {
-	if (words->n <= 0) {
+string verticalProjectFea(Pix* pix, Boxa* reginos, int scale_factor, int word_len) {
+	if (reginos->n <= 0) {
 		return "";
 	}
 	string res;
 	Pix* p = pixConvertTo8(pix, 0);
-	Box* b = boxaGetBox(words, 0, L_CLONE);
+	Box* b = boxaGetBox(reginos, 0, L_CLONE);
 	int lastx = b->x;
-	for (int i = 0; i < words->n; i++) {
-		Box* b = boxaGetBox(words, i, L_CLONE);
+	for (int i = 0; i < reginos->n; i++) {
+		Box* b = boxaGetBox(reginos, i, L_CLONE);
 		int*col = new int[b->w];
 		memset(col, 0, sizeof(int)*b->w);
 		int sum = 1;
@@ -258,7 +257,6 @@ int getWordLine(Pix* pix, Box* word, int dir, float min_scale) {
 	return candidate_word_pos.size();
 }
 
-
 string wordsFea(Pix* pix, Boxa* words, float min_scale) {
 	if (pix == NULL || words == NULL || words->n <= 0)
 		return "error:words is null or words->n is 0";
@@ -297,7 +295,7 @@ int main(int argc, char** argv) {
 	}
 	Pix* pix = NULL;
 	IplImage* image = NULL;
-//	cv::Mat mat;
+	cv::Mat mat;
 //	open(argv[1], pix, mat);
 //	cout << pix->w << " " << pix->h << endl;
 	pix = pixRead(argv[1]);
