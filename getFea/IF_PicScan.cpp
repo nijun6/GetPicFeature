@@ -7,6 +7,7 @@
 IF_PicScan::IF_PicScan(string libPath): BaseScan(libPath) {
 	cout << "libpath = " << this->libPath << endl;
 }
+
 IF_PicScan::~IF_PicScan() {
 
 }
@@ -14,14 +15,42 @@ IF_PicScan::~IF_PicScan() {
 int IF_PicScan::extractFeature(struct FileInfo pf) {
 	Util::readImageFromMemory(pf.plainContent, pf.length, cvimg);
 	img = Util::getPixFromIplImage(cvimg);
-	
+	tst.getLineAndWordsLayout(img, lines, words);
+
+	fea = "filename:" + pf.fileName + "\n"
+				+"wordcode:" + codeWord(words) + "\n"
+				+"sentencecode:" + codeSentence(words) + "\n"
+				+"linecode:" + codeLine(lines) + "\n"
+				+"project_feature:" + verticalProjectFea(img, lines, 10, 20);
+
 	cvReleaseImage(&cvimg);
 	pixDestroy(&img);
 	return 1;
 }
 
+bool IF_PicScan::dumpFeature(const FileInfo& fileinfo, const string& fea) {
+	FILE* fp = fopen("ID", "wb");
+	fwrite(fileinfo.ID, sizeof(fileinfo.ID), 1, fp);
+	fclose(fp);
+	fp = fopen("picfeature", "w");
+	fprintf(fp, "%s", fea.c_str());
+	fclose(fp);
+	system("java -jar PicRetrive.jar dumpfea idfile=ID featurefile=picfeature");
+	return true;
+}
+
+bool IF_PicScan::searchFea(const string& fea, ScanResult& sr) {
+	FILE* fp = fopen("picfeature", "w");
+	fprintf(fp, "%s", fea.c_str());
+	fclose(fp);
+	system("java -jar PicRetrive.jar search featurefile=picfeature");
+	return true;
+}
+
 ScanResult IF_PicScan::matchFeature(struct FileInfo pf) {
 	ScanResult sr;
+	extractFeature(pf);
+	searchFea(fea, sr);
 	return sr;
 }
 
@@ -48,7 +77,6 @@ string IF_PicScan::codeWord(Boxa* words) {
 	}
 	return wordscode;
 }
-
 
 int IF_PicScan::averWordsGap(Boxa* words) {
 	Box* last = boxaGetBox(words, 0, L_CLONE);

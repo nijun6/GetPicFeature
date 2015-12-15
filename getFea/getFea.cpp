@@ -252,7 +252,7 @@ void testWriteBoxa(Pix*p, Boxa* words) {
 	getchar();
 }
 
-int main_bak(int argc, char** argv) {
+int main(int argc, char** argv) {
 	//test();
 	if (argc < 2) {
 		fprintf(stderr, "wrong arguments\n");
