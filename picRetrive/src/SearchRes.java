@@ -1,9 +1,9 @@
 
 public class SearchRes {
 	private byte[] id;
-	private float distance;
+	private double distance;
 	
-	public SearchRes(byte[] id, float distance) {
+	public SearchRes(byte[] id, Double distance) {
 		this.id = id;
 		this.distance = distance;
 	}
@@ -12,7 +12,7 @@ public class SearchRes {
 		return id;
 	}
 	
-	public float getDistance() {
+	public double getDistance() {
 		return distance;
 	}
 }

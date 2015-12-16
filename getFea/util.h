@@ -47,5 +47,7 @@ namespace Util {
 	Pix* getRange(Pix* pix, Box* box);
 
 	Pix* getPixFromIplImage( IplImage* cvimg );
+
+	bool readRes(string idfile, string disfile, unsigned char* id, float& dis);
 }
 #endif

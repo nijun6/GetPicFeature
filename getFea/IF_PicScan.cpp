@@ -44,6 +44,7 @@ bool IF_PicScan::searchFea(const string& fea, ScanResult& sr) {
 	fprintf(fp, "%s", fea.c_str());
 	fclose(fp);
 	system("java -jar PicRetrive.jar search featurefile=picfeature");
+	Util::readRes("id", "picfeature", sr.ID_Lib, sr.distance);
 	return true;
 }
 

@@ -309,4 +309,22 @@ namespace Util {
 			}
 		}
 	}
+
+
+	bool readRes(string idfile, string disfile, unsigned char* id, float& dis) {
+		FILE* fp = fopen(idfile.c_str(), "rb");
+		if (fp == NULL) {
+			return false;
+		}
+		fread(id, 128, 0, fp);
+		fclose(fp);
+		fp = fopen(disfile.c_str(), "r");
+		if (fp == NULL) {
+			return false;
+		}
+		double d;
+		fscanf(fp, "%lf", &d);
+		dis = (float)d;
+		fclose(fp);
+	}
 }
