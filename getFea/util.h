@@ -14,6 +14,11 @@ using namespace std;
 const int scale_factor_line_layout = 10;
 
 namespace Util {
+#ifdef WIN32
+	const string path_separtor = "\\";
+#else
+	const string path_sepator = "/";
+#endif
 
 	/*
 	fuction: convert FreeImage format to Iplimage format

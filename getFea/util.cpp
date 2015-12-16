@@ -326,5 +326,6 @@ namespace Util {
 		fscanf(fp, "%lf", &d);
 		dis = (float)d;
 		fclose(fp);
+		return true;
 	}
 }

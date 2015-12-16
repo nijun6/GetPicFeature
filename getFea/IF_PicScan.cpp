@@ -23,6 +23,7 @@ int IF_PicScan::extractFeature(struct FileInfo pf) {
 				+"linecode:" + codeLine(lines) + "\n"
 				+"project_feature:" + verticalProjectFea(img, lines, 10, 20);
 
+	dumpFeature(pf, fea);
 	cvReleaseImage(&cvimg);
 	pixDestroy(&img);
 	return 1;
@@ -32,10 +33,14 @@ bool IF_PicScan::dumpFeature(const FileInfo& fileinfo, const string& fea) {
 	FILE* fp = fopen("ID", "wb");
 	fwrite(fileinfo.ID, sizeof(fileinfo.ID), 1, fp);
 	fclose(fp);
-	fp = fopen("picfeature", "w");
+
+	string filename = "." + Util::path_separtor + "picLib" 
+		+ Util::path_separtor + fileinfo.fileName; 
+
+	fp = fopen(filename.c_str(), "w");
 	fprintf(fp, "%s", fea.c_str());
 	fclose(fp);
-	system("java -jar PicRetrive.jar dumpfea idfile=ID featurefile=picfeature");
+	system(("java -jar PicRetrive.jar dumpfea idfile=ID featurefile=" + filename).c_str());
 	return true;
 }
 
