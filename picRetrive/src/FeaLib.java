@@ -2,6 +2,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+import javax.print.attribute.standard.PrinterMessageFromOperator;
+
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -19,7 +21,7 @@ import org.apache.lucene.store.FSDirectory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class FeaLib {
-	String libpath= "."+ File.separator +"piclib";
+	String libpath= "."+ File.separator +"picLib" + File.separator + "index";
 	
 	public FeaLib() {
 	}
@@ -31,12 +33,26 @@ public class FeaLib {
 	private void addDoc(Document doc) throws IOException {
 		Directory directory = FSDirectory.open(Paths.get(libpath));
 		IndexWriter indexWriter = new IndexWriter(directory, new IndexWriterConfig(new StandardAnalyzer()));
+		
 		indexWriter.addDocument(doc);
 		indexWriter.close();
 	}
 	
-	public void addFeature(PicFeature picFeature) throws IOException {
+	public void addFeature(PicFeature picFeature) throws IOException, ParseException {
+		Directory directory = FSDirectory.open(Paths.get(libpath));
+		IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
+		QueryParser queryParser = new QueryParser("ID", new StandardAnalyzer());
+		Query query = queryParser.parse(picFeature.getID());
+		TopDocs topDocs = searcher.search(query, 1);
+		IndexReader iReader = searcher.getIndexReader();
+		if (topDocs.scoreDocs.length >= 1 
+				&& iReader.document(topDocs.scoreDocs[0].doc).get("ID")
+				.equals(picFeature.getID())) {
+			System.out.println(picFeature.getFileName() + " already in the lib");
+			return ;
+		}
 		addDoc(picFeature.getDocument());
+		System.out.println(picFeature.getFileName() + " has been input the lib");
 	}
 	
 	public void removeFeature(PicFeature picFeature) {
@@ -64,6 +80,16 @@ public class FeaLib {
 			}
 		}
 		return new SearchRes(picFeature.getID(), 1.0/similarity);
+	}
+
+	public void list() throws IOException {
+		Directory directory = FSDirectory.open(Paths.get(libpath));
+		IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
+		IndexReader iReader = searcher.getIndexReader();
+		System.out.println("mac doc = " + iReader.maxDoc());
+		for (int i = 0; i < iReader.maxDoc(); i++) {
+			System.out.println(iReader.document(i));
+		}
 	}
 	
 	

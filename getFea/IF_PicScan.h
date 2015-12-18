@@ -17,20 +17,22 @@ class IF_PicScan : public BaseScan {
 	Pix* img;
 	Boxa* lines;
 	Boxa* words;
-	string fea;
 
 public:
+	string fea;
+
 	IF_PicScan(string libPath);
     int extractFeature(struct FileInfo pf);
     ScanResult matchFeature(struct FileInfo pf);
-	bool searchFea(const string& fea, ScanResult& sr);
+	bool searchFea(const string& fea, ScanResult& sr, const FileInfo& fileinfo);
 	~IF_PicScan();
+	bool dumpFeature(const FileInfo& fileinfo);
 private:
+	IplImage* roughFilter(IplImage* img);
 	string codeWord(Boxa* words);
 	string codeSentence(Boxa* words);
 	string codeLine(Boxa* lines);
 	string verticalProjectFea(Pix* pix, Boxa* reginos, int scale_factor, int word_height);
-	bool dumpFeature(const FileInfo& fileinfo, const string& fea);
 
 	int averWordsGap(Boxa* words);
 };

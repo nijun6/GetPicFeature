@@ -12,13 +12,17 @@
 using namespace std;
 
 const int scale_factor_line_layout = 10;
+//#define DEBUG 1
 
 namespace Util {
+
 #ifdef WIN32
 	const string path_separtor = "\\";
 #else
 	const string path_sepator = "/";
 #endif
+
+	const float INF = 1e38;
 
 	/*
 	fuction: convert FreeImage format to Iplimage format
@@ -54,5 +58,7 @@ namespace Util {
 	Pix* getPixFromIplImage( IplImage* cvimg );
 
 	bool readRes(string idfile, string disfile, unsigned char* id, float& dis);
+
+	void converPaht2Filename(string& name, const string& path);
 }
 #endif

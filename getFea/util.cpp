@@ -288,7 +288,7 @@ namespace Util {
 		for (int i = 0; i < box->w; i++) {
 			for (int j = 0; j < box->h; j++) {
 				unsigned int v;
-				pixGetPixel(pix, i, j, &v);
+				pixGetPixel(pix, box->x + i, box->y + j, &v);
 				pixSetPixel(pr, i, j, v);
 			} 
 		}
@@ -302,14 +302,22 @@ namespace Util {
 			return NULL;
 		}
 		#define S(image,x,y) ((uchar*)(image->imageData + image->widthStep*(y)))[(x)]
-		Pix* pix = pixCreate(cvimg->width, cvimg->height, cvimg->depth);
+		Pix* pix = pixCreate(cvimg->width, cvimg->height, 8);
 		for (int x = 0; x < cvimg->width; x++) {
 			for (int y = 0; y < cvimg->height; y++) {
 				pixSetPixel(pix, x, y, S(cvimg, x, y));
 			}
 		}
+		return pix;
 	}
 
+	void converPaht2Filename(string& name, const string& path) {
+		name = path;
+		for (int i = 0; i < name.size(); i++) {
+			if (name[i] == '\\' || name[i] == ':')
+				name[i] = '_';
+		}
+	}
 
 	bool readRes(string idfile, string disfile, unsigned char* id, float& dis) {
 		FILE* fp = fopen(idfile.c_str(), "rb");

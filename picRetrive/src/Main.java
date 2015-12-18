@@ -10,9 +10,12 @@ public class Main {
 	public static void main(String[] args) throws IOException
 					, WrongFormatFeaString
 					, InterruptedException
-					, ParseException, WrongFomatArgs {
-		long begin = System.currentTimeMillis();
-		System.out.println(fib(45) + " time consumed:" + (System.currentTimeMillis() - begin));
+					, ParseException, WrongFomatArgs, WraongFormatID {
+		System.out.println("java picfeature lib started");
+		System.out.println("args.length = " + args.length);
+		for (String s: args) {
+			System.out.println(s);
+		}
 		if (args.length == 3 && args[0].equals("dumpfea")) {
 			PicFeature picFeature = null;
 			if (args[1].startsWith("idfile=") && args[2].startsWith("featurefile=")) {
@@ -31,23 +34,28 @@ public class Main {
 				SearchRes sRes = feaLib.search(pf);
 				saveFea(sRes, "ID", args[1].split("=")[1]);
 			}
+		} else if (args.length == 1 && args[0].equals("list")) {
+			FeaLib feaLib = new FeaLib();
+			feaLib.list();
 		}
 	}
 	
 	private static void saveFea(SearchRes searchRes, String idfile, String feafile) 
-			throws IOException {
+			throws IOException, WraongFormatID {
 		OutputStream out = new FileOutputStream(new File(idfile));
-		out.write(searchRes.getID(), 0, 128);
+		byte[] id = new byte[128];
+		int i = 0;
+		for (String s: searchRes.getID().split(" ")) {
+			if (i >= 128) {
+				throw new WraongFormatID();
+			}
+			id[i++] = Byte.parseByte(s);
+		}
+		out.write(id, 0, 128);
 		out.close();
 		out = new FileOutputStream(new File(feafile));
 		byte[] bs = Double.toString(searchRes.getDistance()).getBytes();
 		out.write(bs, 0, bs.length);
 		out.close();
-	}
-	
-	public static long fib(int n) {
-		if (n <= 2)
-			return 1;
-		return fib(n-1) + fib(n-2);
-	}
+	}	
 }

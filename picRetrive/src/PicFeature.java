@@ -1,7 +1,10 @@
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.apache.lucene.document.Document;
@@ -22,8 +25,20 @@ public class PicFeature {
 	HashMap<String, String> feaContent;
 	
 	public PicFeature(String feafile) throws WrongFormatFeaString, IOException {
-		byte[] feab = getFeaFromFile(feafile);
-		Init(null, feab.toString());
+		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(feafile)));
+		String line;
+		StringBuffer fea = new StringBuffer();
+		ArrayList<String> feas = new ArrayList<String>();
+		while ((line = reader.readLine()) != null) {
+			feas.add(line);
+		}
+		for (int i = 0; i < feas.size(); i++) {
+			fea.append(feas.get(i));
+			if (i < feas.size() - 1)
+				fea.append('\n');
+		}
+		reader.close();
+		Init(null, fea.toString());
 	}
 	
 	public PicFeature(Document doc) {
@@ -49,9 +64,21 @@ public class PicFeature {
 	
 	public PicFeature(String idfile, String feafile) throws IOException, WrongFormatFeaString {
 		byte[] id = getBytesFromFile(idfile, 128);
-		byte[] b = getFeaFromFile(feafile);
-		String fea = b.toString();
-		Init(id, fea);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(feafile)));
+		String line;
+		StringBuffer fea = new StringBuffer();
+		ArrayList<String> feas = new ArrayList<String>();
+		while ((line = reader.readLine()) != null) {
+			feas.add(line);
+		}
+		for (int i = 0; i < feas.size(); i++) {
+			fea.append(feas.get(i));
+			if (i < feas.size() - 1)
+				fea.append('\n');
+		}
+		reader.close();
+		System.out.println("before Init:" + fea);
+		Init(id, fea.toString());
 	}
 
 	public double computeDistance(PicFeature pf, double mindis) {
@@ -115,12 +142,13 @@ public class PicFeature {
 	private void Init(byte[] id, String fea) throws WrongFormatFeaString {
 		ID = id;
 		feaContent = new HashMap<String, String>();
+		System.out.println(fea);
 		String[] fs = fea.split("\n");
 		for (String s : fs) {
 			String[] ss = s.split(":");
-			if (ss.length != 2 || !checkInFeaNames(ss[0]))
+			if (!checkInFeaNames(ss[0]))
 				throw new WrongFormatFeaString();
-			feaContent.put(ss[0], ss[1]);
+			feaContent.put(ss[0], s.substring(s.indexOf(':')+1));
 		}
 		
 	}
@@ -186,7 +214,13 @@ public class PicFeature {
 		return feaContent.get(project_feature);
 	}
 
-	public byte[] getID() {
-		return ID;
+	public String getID() {
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < ID.length; i++) {
+			sb.append(i);
+			if (i < ID.length - 1)
+				sb.append(" ");
+		}
+		return sb.toString();
 	}
 }

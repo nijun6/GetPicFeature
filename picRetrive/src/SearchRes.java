@@ -1,14 +1,14 @@
 
 public class SearchRes {
-	private byte[] id;
+	private String id;
 	private double distance;
 	
-	public SearchRes(byte[] id, Double distance) {
+	public SearchRes(String id, Double distance) {
 		this.id = id;
 		this.distance = distance;
 	}
 	
-	public byte[] getID() {
+	public String getID() {
 		return id;
 	}
 	
