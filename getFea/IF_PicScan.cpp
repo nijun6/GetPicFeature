@@ -105,7 +105,7 @@ bool IF_PicScan::searchFea(const string& fea, ScanResult& sr, const FileInfo& fi
 	FILE* fp = fopen("picfeature", "w");
 	fprintf(fp, "%s", fea.c_str());
 	fclose(fp);
-	system(("java -jar PicRetrive.jar search featurefile="+fileinfo.fileName).c_str());
+	system("java -jar PicRetrive.jar search featurefile=picfeature lib=.\\libPic\\index");
 	Util::readRes("id", "picfeature", sr.ID_Lib, sr.distance);
 	return true;
 }

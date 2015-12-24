@@ -21,7 +21,7 @@ import org.apache.lucene.store.FSDirectory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class FeaLib {
-	String libpath= "."+ File.separator +"picLib" + File.separator + "index";
+	String libpath = "."+ File.separator +"picLib" + File.separator + "index";
 	
 	public FeaLib() {
 	}
@@ -48,7 +48,8 @@ public class FeaLib {
 		if (topDocs.scoreDocs.length >= 1 
 				&& iReader.document(topDocs.scoreDocs[0].doc).get("ID")
 				.equals(picFeature.getID())) {
-			System.out.println(picFeature.getFileName() + " already in the lib");
+			
+			System.out.println("docID = " + topDocs.scoreDocs[0].doc + " " +picFeature.getFileName() + " already in the lib");
 			return ;
 		}
 		addDoc(picFeature.getDocument());
@@ -68,11 +69,12 @@ public class FeaLib {
 		Query query = queryParser.parse(pf.getSentenceCode());
 		IndexReader iReader = searcher.getIndexReader();
 		
-		TopDocs tDocs = searcher.search(query, iReader.numDocs()/10);
+		System.out.println("there are " + iReader.numDocs() + " documents in this indexer, max Document ID = " + (iReader.maxDoc() - 1));
+		TopDocs tDocs = searcher.search(query, iReader.numDocs()/10 > 0 ? iReader.numDocs()/10 : 10);
 		double similarity = 0.0;
 		PicFeature picFeature = null;
 		for (int i = 0; i < tDocs.totalHits; i++) {
-			PicFeature feature =new PicFeature(iReader.document(tDocs.scoreDocs[i].doc));
+			PicFeature feature = new PicFeature(iReader.document(tDocs.scoreDocs[i].doc));
 			double sim = feature.computeDistance(pf, 0.8);
 			if (sim > similarity) {
 				similarity = sim;

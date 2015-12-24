@@ -25,25 +25,24 @@ public class PicFeature {
 	HashMap<String, String> feaContent;
 	
 	public PicFeature(String feafile) throws WrongFormatFeaString, IOException {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(feafile)));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File(feafile))));
 		String line;
-		StringBuffer fea = new StringBuffer();
-		ArrayList<String> feas = new ArrayList<String>();
+		feaContent = new HashMap<String, String>();
 		while ((line = reader.readLine()) != null) {
-			feas.add(line);
-		}
-		for (int i = 0; i < feas.size(); i++) {
-			fea.append(feas.get(i));
-			if (i < feas.size() - 1)
-				fea.append('\n');
+			feaContent.put(line.split(":")[0], line.split(":")[1]);
 		}
 		reader.close();
-		Init(null, fea.toString());
 	}
 	
 	public PicFeature(Document doc) {
-		this.ID = doc.getBinaryValue("ID").bytes;
-
+		String id = doc.get("ID");
+		this.ID = new byte[128];
+		String[] idv = id.split(" "); 
+		for (int i = 0; i < 128; i++) {
+			this.ID[i] = Byte.parseByte(idv[i]);
+		}
+		
+		feaContent = new HashMap<String, String>();
 		feaContent.put(filename, doc.get(filename));
 		feaContent.put(wordcode, doc.get(wordcode));
 		feaContent.put(sentencecode, doc.get(sentencecode));
@@ -77,7 +76,6 @@ public class PicFeature {
 				fea.append('\n');
 		}
 		reader.close();
-		System.out.println("before Init:" + fea);
 		Init(id, fea.toString());
 	}
 
@@ -94,9 +92,10 @@ public class PicFeature {
 			a = b;
 			b = t;
 		}
-		double dis = 0;
 		int cnt = 0;
+		double maxDis = 0.0;
 		for (int i = 0; i < b.length - a.length + 3; i++) {
+			double dis = 0;
 			for (int j = 0; j < a.length; j++) {
 				if (i+j > b.length)
 					break;
@@ -108,8 +107,10 @@ public class PicFeature {
 				if (dis < mindis)
 					break;
 			}
+			if (dis > maxDis)
+				maxDis = dis;
 		}
-		return dis;
+		return maxDis;
 	}
 	
 	public double dispj(String x, String y, double mindis, double mincmp) {
@@ -121,18 +122,21 @@ public class PicFeature {
 			yc = t;
 		}
 		
-		double dis = 0;
+		double maxSim = 0;
 		for (int i = 0; i < yc.length - xc.length + 3; i++) {
+			double dis = 0;
 			for (int j = 0; j < xc.length && i+j < yc.length; j++) {
-				double tdis = 1.0*(yc[i+j]-'a')/(xc[j]-'a');
+				double tdis = 1.0*(yc[i+j]-'a' + 1)/(xc[j]-'a' + 1);
 				if (tdis > 1.0)
 					tdis = 1.0/tdis;
-				dis = (dis*i + tdis) / (i+1);
+				dis = (dis*j + tdis) / (j + 1);
 				if (j > xc.length*mincmp && dis < mindis)
-					return dis;
+					break;
 			}
+			if (dis > maxSim)
+				maxSim = dis;
 		}
-		return dis;
+		return maxSim;
 	}
 	
 	public PicFeature(byte[] id, String fea) throws WrongFormatFeaString {
@@ -142,7 +146,6 @@ public class PicFeature {
 	private void Init(byte[] id, String fea) throws WrongFormatFeaString {
 		ID = id;
 		feaContent = new HashMap<String, String>();
-		System.out.println(fea);
 		String[] fs = fea.split("\n");
 		for (String s : fs) {
 			String[] ss = s.split(":");
@@ -217,7 +220,7 @@ public class PicFeature {
 	public String getID() {
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < ID.length; i++) {
-			sb.append(i);
+			sb.append(ID[i]);
 			if (i < ID.length - 1)
 				sb.append(" ");
 		}

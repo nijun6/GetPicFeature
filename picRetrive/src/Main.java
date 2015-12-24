@@ -27,8 +27,14 @@ public class Main {
 			}
 			FeaLib feaLib = new FeaLib();
 			feaLib.addFeature(picFeature);
-		} else if (args.length == 2 && args[0].equals("search")) {
-			FeaLib feaLib = new FeaLib();
+		} else if (args.length == 3 && args[0].equals("search")) {
+			FeaLib feaLib;
+			if (args[2].startsWith("lib="))
+				feaLib = new FeaLib(args[2].split("=")[1]);
+			else {
+				feaLib = new FeaLib();
+			}
+			
 			if (args[1].startsWith("featurefile=")) {
 				PicFeature pf = new PicFeature(args[1].split("=")[1]);
 				SearchRes sRes = feaLib.search(pf);
@@ -47,6 +53,7 @@ public class Main {
 		int i = 0;
 		for (String s: searchRes.getID().split(" ")) {
 			if (i >= 128) {
+				out.close();
 				throw new WraongFormatID();
 			}
 			id[i++] = Byte.parseByte(s);

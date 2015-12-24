@@ -51,8 +51,8 @@ void testSearch() {
 
 int main(int argc, char** argv) {
 	//test333();
-	//testExtract();
-	testSearch();
+	testExtract();
+	//testSearch();
 
 	return 0;
 }
