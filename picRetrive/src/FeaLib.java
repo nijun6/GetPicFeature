@@ -2,8 +2,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
-import javax.print.attribute.standard.PrinterMessageFromOperator;
-
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -22,48 +20,32 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class FeaLib {
 	String libpath = "."+ File.separator +"picLib" + File.separator + "index";
-	
-	public FeaLib() {
-	}
-	
-	public FeaLib(String libpath) {
-		this.libpath = libpath;
-	}
-	
-	private void addDoc(Document doc) throws IOException {
-		Directory directory = FSDirectory.open(Paths.get(libpath));
+	Directory directory;
+	public FeaLib() throws IOException {
+		directory = FSDirectory.open(Paths.get(libpath));
 		IndexWriter indexWriter = new IndexWriter(directory, new IndexWriterConfig(new StandardAnalyzer()));
-		
-		indexWriter.addDocument(doc);
+		indexWriter.close();
+	}
+	
+	public FeaLib(String libpath) throws IOException {
+		this.libpath = libpath;
+		directory = FSDirectory.open(Paths.get(libpath));
+		IndexWriter indexWriter = new IndexWriter(directory, new IndexWriterConfig(new StandardAnalyzer()));
 		indexWriter.close();
 	}
 	
 	public void addFeature(PicFeature picFeature) throws IOException, ParseException {
-		Directory directory = FSDirectory.open(Paths.get(libpath));
-		IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
-		QueryParser queryParser = new QueryParser("ID", new StandardAnalyzer());
-		Query query = queryParser.parse(picFeature.getID());
-		TopDocs topDocs = searcher.search(query, 1);
-		IndexReader iReader = searcher.getIndexReader();
-		if (topDocs.scoreDocs.length >= 1 
-				&& iReader.document(topDocs.scoreDocs[0].doc).get("ID")
-				.equals(picFeature.getID())) {
-			
-			System.out.println("docID = " + topDocs.scoreDocs[0].doc + " " +picFeature.getFileName() + " already in the lib");
-			return ;
-		}
-		addDoc(picFeature.getDocument());
-		System.out.println(picFeature.getFileName() + " has been input the lib");
+		IndexWriter writer = new IndexWriter(directory, new IndexWriterConfig(new StandardAnalyzer()));
+		writer.addDocument(picFeature.getDocument());
+		writer.close();
+		System.out.println(picFeature.getFileName() + " has been input into the lib");
 	}
 	
 	public void removeFeature(PicFeature picFeature) {
 		throw new NotImplementedException();
 	}
 	
-	
-
 	public SearchRes search(PicFeature pf) throws IOException, ParseException {
-		Directory directory = FSDirectory.open(Paths.get(libpath));
 		IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
 		QueryParser queryParser = new QueryParser(PicFeature.sentencecode, new StandardAnalyzer());
 		Query query = queryParser.parse(pf.getSentenceCode());
@@ -85,14 +67,8 @@ public class FeaLib {
 	}
 
 	public void list() throws IOException {
-		Directory directory = FSDirectory.open(Paths.get(libpath));
 		IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
 		IndexReader iReader = searcher.getIndexReader();
-		System.out.println("mac doc = " + iReader.maxDoc());
-		for (int i = 0; i < iReader.maxDoc(); i++) {
-			System.out.println(iReader.document(i));
-		}
+		System.out.println("there are " + iReader.numDocs() + " documents in this lib");
 	}
-	
-	
 }
