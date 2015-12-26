@@ -29,9 +29,9 @@ public class PicFeature {
 		String line;
 		feaContent = new HashMap<String, String>();
 		while ((line = reader.readLine()) != null) {
-			if (line.split(":").length != 2)
+			if (line.split(":").length < 2)
 				throw new WrongFormatFeaString();
-			feaContent.put(line.split(":")[0], line.split(":")[1]);
+			feaContent.put(line.split(":")[0], line.substring(line.indexOf(":") + 1));
 		}
 		reader.close();
 	}
@@ -103,7 +103,7 @@ public class PicFeature {
 					break;
 				double dis_line = dispj(a[j], b[i+j], mindis, 0.2);
 				int len = a[j].length() < b[i+j].length() ? a[j].length() : b[i+j].length();
-				dis += (dis*cnt + dis_line*len)/(cnt + len);
+				dis = (dis*cnt + dis_line*len)/(cnt + len);
 				cnt += len;
 				
 				if (dis < mindis)
@@ -124,7 +124,7 @@ public class PicFeature {
 			yc = t;
 		}
 		
-		double maxSim = 0;
+		double maxSim = 0.0;
 		for (int i = 0; i < yc.length - xc.length + 3; i++) {
 			double dis = 0;
 			for (int j = 0; j < xc.length && i+j < yc.length; j++) {
@@ -227,5 +227,19 @@ public class PicFeature {
 				sb.append(" ");
 		}
 		return sb.toString();
+	}
+	
+	@Override
+	public String toString() {
+		String prj = getProjecFea();
+		if (prj.length() > 50) {
+			prj = prj.substring(0, 50) + "...(" + (prj.length() - 50) + " omit)";
+		}
+		return "id:" + getID() + "\n"
+				+ "filename:" + getFileName() + "\n"
+				+ "wordcode:" + getWordCode() + "\n"
+				+ "linecode:" + getLineCode() + "\n"
+				+ "sentencecode:" + getSentenceCode() + "\n"
+				+ "projectFea:" + prj;
 	}
 }

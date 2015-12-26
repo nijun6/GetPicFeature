@@ -1,3 +1,4 @@
+import com.sun.xml.internal.bind.v2.runtime.RuntimeUtil.ToStringAdapter;
 
 public class SearchRes {
 	private String id;
@@ -14,5 +15,10 @@ public class SearchRes {
 	
 	public double getDistance() {
 		return distance;
+	}
+	
+	@Override
+	public String toString() {
+		return "id = " + id + ",\n distance = " + distance;
 	}
 }

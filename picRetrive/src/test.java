@@ -28,9 +28,9 @@ public class test {
 	
 	public static void testSearch() throws IOException, WrongFormatFeaString, ParseException {
 		FeaLib feaLib = new FeaLib("D:\\NJ\\prg\\picFea\\picFea\\picLib\\index");
-		PicFeature picFeature = new PicFeature("D:\\NJ\\prg\\picFea\\picFea\\picfeature");
+		PicFeature picFeature = new PicFeature("D:\\NJ\\prg\\picFea\\picFea\\picLib\\D__NJ_pictures_libpic_0.png.txt");
 		SearchRes sRes = feaLib.search(picFeature);
-		
+		System.out.println(sRes);
 	}
 	
 	public static void checkReader() throws IOException {

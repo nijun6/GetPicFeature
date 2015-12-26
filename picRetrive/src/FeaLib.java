@@ -64,13 +64,15 @@ public class FeaLib {
 		QueryParser queryParser = new QueryParser(PicFeature.sentencecode, new StandardAnalyzer());
 		Query query = queryParser.parse(pf.getSentenceCode());
 		IndexReader iReader = searcher.getIndexReader();
-		
+
+		System.out.println("tDocs.numDocs:" + iReader.numDocs());
 		TopDocs tDocs = searcher.search(query, iReader.numDocs()/10 > 0 ? iReader.numDocs()/10 : 10);
 		double similarity = 0.0;
 		PicFeature picFeature = null;
 		System.out.println("tDocs.totalHits:" + tDocs.totalHits);
 		for (int i = 0; i < tDocs.totalHits; i++) {
 			PicFeature feature = new PicFeature(iReader.document(tDocs.scoreDocs[i].doc));
+			//System.out.println(feature);
 			double sim = feature.computeDistance(pf, 0.8);
 			if (sim > similarity) {
 				similarity = sim;
@@ -78,7 +80,7 @@ public class FeaLib {
 			}
 		}
 		if (picFeature == null) {
-			return new SearchRes(null, Double.MAX_VALUE);
+			return new SearchRes(null, (double)Float.MAX_VALUE);
 		}
 		return new SearchRes(picFeature.getID(), 1.0/similarity);
 	}
