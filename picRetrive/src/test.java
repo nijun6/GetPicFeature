@@ -23,7 +23,14 @@ import org.apache.lucene.store.FSDirectory;
 
 public class test {
 	public static void main(String[] args) throws IOException, ParseException, WrongFormatFeaString {
-		Search();
+		testSearch();
+	}
+	
+	public static void testSearch() throws IOException, WrongFormatFeaString, ParseException {
+		FeaLib feaLib = new FeaLib("D:\\NJ\\prg\\picFea\\picFea\\picLib\\index");
+		PicFeature picFeature = new PicFeature("D:\\NJ\\prg\\picFea\\picFea\\picfeature");
+		SearchRes sRes = feaLib.search(picFeature);
+		
 	}
 	
 	public static void checkReader() throws IOException {
@@ -53,16 +60,11 @@ public class test {
 		IndexReader indexReader = searcher.getIndexReader();
 		System.out.println("there are " + indexReader.numDocs() + " documents in the index");
 		QueryParser parser = new QueryParser("ID", new StandardAnalyzer());
-		String id = "104 0 -45 5 108 0 -45 5 112 0 -45 5 116 0"
-				+ " -45 5 120 0 -45 5 124 0 -45 5 -128 0 -45 5 -124 0 -45 5 -120 0 -45 5 -116 0 -45"
-				+ " 5 -112 0 -45 5 -108 0 -45 5 -104 0 -45 5 -100 0 -45 5 -96 0 -45 5 -92 0 -45 5"
-				+ " -88 0 -45 5 -84 0 -45 5 -80 0 -45 5 -76 0 -45 5 -72 0 -45 5 -68 0 -45 5 -64 "
-				+ "0 -45 5 -60 0 -45 5 -56 0 -45 5 -52 0 -45 5 -48 0 -45 5 -44 0 -45 5 -40 0"
-				+ " -45 5 -36 0 -45 5 -32 0 -45 5 -28 0 -45 5";
+		String id = "104";
 		Query query = parser.parse(id);
 		TopDocs topDocs = searcher.search(query, 10);
 		for (ScoreDoc scoreDoc: topDocs.scoreDocs) {
-			System.out.println(scoreDoc);
+			System.out.println(indexReader.document(scoreDoc.doc).get("ID"));
 		}
 	}
 	

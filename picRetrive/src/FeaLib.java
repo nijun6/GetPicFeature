@@ -35,6 +35,20 @@ public class FeaLib {
 	}
 	
 	public void addFeature(PicFeature picFeature) throws IOException, ParseException {
+		if (picFeature.getID() == null) {
+			System.out.println("The ID is fault");
+			return;
+		}
+		IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
+		IndexReader reader = searcher.getIndexReader();
+		for (int i = 0; i < reader.maxDoc(); i++) {
+			if (picFeature.getID().equals(reader.document(i).get("ID"))) {
+				System.out.println("The file already in the lib");
+				reader.close();
+				return;
+			}
+		}
+		reader.close();
 		IndexWriter writer = new IndexWriter(directory, new IndexWriterConfig(new StandardAnalyzer()));
 		writer.addDocument(picFeature.getDocument());
 		writer.close();
@@ -51,10 +65,10 @@ public class FeaLib {
 		Query query = queryParser.parse(pf.getSentenceCode());
 		IndexReader iReader = searcher.getIndexReader();
 		
-		System.out.println("there are " + iReader.numDocs() + " documents in this indexer, max Document ID = " + (iReader.maxDoc() - 1));
 		TopDocs tDocs = searcher.search(query, iReader.numDocs()/10 > 0 ? iReader.numDocs()/10 : 10);
 		double similarity = 0.0;
 		PicFeature picFeature = null;
+		System.out.println("tDocs.totalHits:" + tDocs.totalHits);
 		for (int i = 0; i < tDocs.totalHits; i++) {
 			PicFeature feature = new PicFeature(iReader.document(tDocs.scoreDocs[i].doc));
 			double sim = feature.computeDistance(pf, 0.8);
@@ -62,6 +76,9 @@ public class FeaLib {
 				similarity = sim;
 				picFeature = feature;
 			}
+		}
+		if (picFeature == null) {
+			return new SearchRes(null, Double.MAX_VALUE);
 		}
 		return new SearchRes(picFeature.getID(), 1.0/similarity);
 	}

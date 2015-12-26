@@ -24,10 +24,12 @@ public:
 	IF_PicScan(string libPath);
     int extractFeature(struct FileInfo pf);
     ScanResult matchFeature(struct FileInfo pf);
-	bool searchFea(const string& fea, ScanResult& sr, const FileInfo& fileinfo);
 	~IF_PicScan();
-	bool dumpFeature(const FileInfo& fileinfo);
 private:
+	bool searchFea(const string& fea, ScanResult& sr, const FileInfo& fileinfo);
+	bool dumpFeature2File(const FileInfo& fileinfo, string& feafile, string& idfile);
+	bool inputFea2Lib(const string& feafile, const string& idfile);
+	bool getFeaFromFile(struct FileInfo pf);
 	IplImage* roughFilter(IplImage* img);
 	string codeWord(Boxa* words);
 	string codeSentence(Boxa* words);

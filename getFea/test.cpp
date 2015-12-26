@@ -28,7 +28,6 @@ void testExtract() {
 		FileInfo fi;
 		if (getFileInfo((char*)fileslist[i].c_str(), fi)) {
 			feaGet.extractFeature(fi);
-			feaGet.dumpFeature(fi);
 		}
 	}
 }
@@ -36,14 +35,14 @@ void testExtract() {
 void testSearch() {
 	IF_PicScan feaGet(".\\picLib");
 	vector<string> fileslist;
-	getFiles("D:\\NJ\\pictures\\libpic", fileslist);
+	//getFiles("D:\\NJ\\pictures\\libpic", fileslist);
+	getFiles("D:\\test\\fiterTest", fileslist);
 	sort(fileslist.begin(), fileslist.end());
 	for (int i = 0; i < fileslist.size(); i++) {
 		FileInfo fi;
 		if (getFileInfo((char*)fileslist[i].c_str(), fi)) {
-			feaGet.extractFeature(fi);
 			ScanResult sr;
-			feaGet.searchFea(feaGet.fea, sr, fi);
+			sr = feaGet.matchFeature(fi);
 			cout << "search result: " << sr.distance << endl;
 		}
 	}
@@ -51,8 +50,8 @@ void testSearch() {
 
 int main(int argc, char** argv) {
 	//test333();
-	testExtract();
-	//testSearch();
+	//testExtract();
+	testSearch();
 
 	return 0;
 }

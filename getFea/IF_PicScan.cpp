@@ -30,56 +30,17 @@ void cvText(IplImage* img, const char* text, int x, int y)
 }
 
 int IF_PicScan::extractFeature(struct FileInfo pf) {
-	IplImage *temp = cvLoadImage((const char*)(pf.fileName.c_str()));
-	if (temp == NULL) {
-		fprintf(stderr, "can not open the image");
-		return 0;
-	}
-	cvimg = cvCreateImage(cvGetSize(temp), IPL_DEPTH_8U, 1);
-	cvCvtColor(temp, cvimg, CV_RGB2GRAY);
-	cvReleaseImage(&temp);
-	
-	img = Util::getPixFromIplImage(cvimg);
-	tst.getLineAndWordsLayout(img, lines, words);
-
-#ifdef DEBUG
-	cvSaveImage("cvimage.jpg", cvimg);
-	pixWrite("pixtest.jpg", img, IFF_JFIF_JPEG);
-	Pix* pline = pixDrawBoxa(img, lines, 1, 0x00ff0000);
-	pixWrite("line.jpg", pline, IFF_JFIF_JPEG);
-	Pix* pword = pixDrawBoxa(img, words, 1, 0x00ff0000);
-	pixWrite("word.jpg", pword, IFF_JFIF_JPEG);
-	pixDestroy(&pline);
-	pixDestroy(&pword);
-	for (int i = 0; i < words->n; i++) {
-		char str[20];
-		sprintf(str, "%d", i);
-		Box* b = boxaGetBox(words, i, L_CLONE);
-		cvText(cvimg, str, b->x, b->y);
-	}
-	cvSaveImage("mardwords.jpg", cvimg);
-#endif
-
-	if (lines == NULL || words == NULL) {
-		fprintf(stderr, "Can not get words and lines position");
-		return 0;
-	}
-
-	fea = "filename:" + pf.fileName + "\n"
-				+"wordcode:" + codeWord(words) + "\n"
-				+"sentencecode:" + codeSentence(words) + "\n"
-				+"linecode:" + codeLine(lines) + "\n"
-				+"project_feature:" + verticalProjectFea(img, lines, 10, 20);
-	
-	cvReleaseImage(&cvimg);
-	pixDestroy(&img);
+	getFeaFromFile(pf);
+	string feafile, idfile;
+	dumpFeature2File(pf, feafile, idfile);
+	inputFea2Lib(feafile, idfile);
 	return 1;
 }
 
-bool IF_PicScan::dumpFeature(const FileInfo& fileinfo) {
+bool IF_PicScan::dumpFeature2File(const FileInfo& fileinfo, string& feafile, string& idfile) {
 	string name;
 	Util::converPaht2Filename(name, Util::path_separtor+fileinfo.fileName+".ID");
-	string idfile = libPath + Util::path_separtor + name;
+	idfile = libPath + Util::path_separtor + name;
 
 	FILE* fp = fopen(idfile.c_str(), "wb");
 	if (fp == NULL) {
@@ -88,16 +49,20 @@ bool IF_PicScan::dumpFeature(const FileInfo& fileinfo) {
 	fwrite(fileinfo.ID, sizeof(fileinfo.ID), 1, fp);
 	fclose(fp);
 	Util::converPaht2Filename(name, fileinfo.fileName);
-	string filename = libPath + Util::path_separtor + name + ".txt";
+	feafile = libPath + Util::path_separtor + name + ".txt";
 
-	fp = fopen(filename.c_str(), "w");
+	fp = fopen(feafile.c_str(), "w");
 	if (fp == NULL) {
 		fprintf(stderr, "can not open the feature file");
 		return false;
 	}
 	fprintf(fp, "%s", fea.c_str());
 	fclose(fp);
-	system(("java -jar PicRetrive.jar dumpfea idfile="+idfile+" featurefile=" + filename).c_str());
+	return true;
+}
+
+bool IF_PicScan::inputFea2Lib(const string& feafile, const string& idfile) {
+	system(("java -jar PicRetrive.jar dumpfea idfile=" + idfile + " featurefile=" + feafile).c_str());
 	return true;
 }
 
@@ -105,36 +70,15 @@ bool IF_PicScan::searchFea(const string& fea, ScanResult& sr, const FileInfo& fi
 	FILE* fp = fopen("picfeature", "w");
 	fprintf(fp, "%s", fea.c_str());
 	fclose(fp);
-	system("java -jar PicRetrive.jar search featurefile=picfeature lib=.\\libPic\\index");
+	system("java -jar PicRetrive.jar search featurefile=picfeature lib=.\\picLib\\index");
 	Util::readRes("id", "picfeature", sr.ID_Lib, sr.distance);
 	return true;
 }
 
 ScanResult IF_PicScan::matchFeature(struct FileInfo pf) {
 	ScanResult sr;
-	IplImage *temp = cvLoadImage((const char*)(pf.fileName.c_str()));
-	if (temp == NULL) {
-		fprintf(stderr, "can not open the image");
-		sr.distance = Util::INF;
-		return sr;
-	}
-	cvimg = cvCreateImage(cvGetSize(temp), IPL_DEPTH_8U, 1);
-	cvCvtColor(temp, cvimg, CV_RGB2GRAY);
-	cvReleaseImage(&temp);
-
-	img = Util::getPixFromIplImage(cvimg);
-	IplImage* pimg = roughFilter(cvimg);
-	if (pimg == NULL) {
-		sr.distance = Util::INF;
-		return sr;
-	}
-
-	extractFeature(pf);
+	getFeaFromFile(pf);
 	searchFea(fea, sr, pf);
-
-	cvReleaseImage(&cvimg);
-	cvReleaseImage(&pimg);
-	pixDestroy(&img);
 	return sr;
 }
 
@@ -276,6 +220,8 @@ string IF_PicScan::verticalProjectFea(Pix* pix, Boxa* reginos, int scale_factor,
 		Pix* region = Util::getRange(pix, b);
 		float scale = 1.0*word_height/region->h;
 		Pix* pscl = pixScale(region, scale, scale);
+		if (pscl == NULL)
+			continue;
 		int col_project[max_img_width] = {};
 		unsigned int v;
 		for (int y = 0; y < pscl->h; y++) {
@@ -302,4 +248,51 @@ string IF_PicScan::verticalProjectFea(Pix* pix, Boxa* reginos, int scale_factor,
 	}
 
 	return res;
+}
+
+bool IF_PicScan::getFeaFromFile(struct FileInfo pf) {
+	IplImage *temp = cvLoadImage((const char*)(pf.fileName.c_str()));
+	if (temp == NULL) {
+		fprintf(stderr, "can not open the image");
+		return 0;
+	}
+	cvimg = cvCreateImage(cvGetSize(temp), IPL_DEPTH_8U, 1);
+	cvCvtColor(temp, cvimg, CV_RGB2GRAY);
+	cvReleaseImage(&temp);
+	
+	img = Util::getPixFromIplImage(cvimg);
+	tst.getLineAndWordsLayout(img, lines, words);
+
+#ifdef DEBUG
+	cvSaveImage("cvimage.jpg", cvimg);
+	pixWrite("pixtest.jpg", img, IFF_JFIF_JPEG);
+	Pix* pline = pixDrawBoxa(img, lines, 1, 0x00ff0000);
+	pixWrite("line.jpg", pline, IFF_JFIF_JPEG);
+	Pix* pword = pixDrawBoxa(img, words, 1, 0x00ff0000);
+	pixWrite("word.jpg", pword, IFF_JFIF_JPEG);
+	pixDestroy(&pline);
+	pixDestroy(&pword);
+	for (int i = 0; i < words->n; i++) {
+		char str[20];
+		sprintf(str, "%d", i);
+		Box* b = boxaGetBox(words, i, L_CLONE);
+		cvText(cvimg, str, b->x, b->y);
+	}
+	cvSaveImage("mardwords.jpg", cvimg);
+#endif
+
+	if (lines == NULL || words == NULL) {
+		fprintf(stderr, "Can not get words and lines position");
+		return 0;
+	}
+
+	fea = "filename:" + pf.fileName + "\n"
+				+"wordcode:" + codeWord(words) + "\n"
+				+"sentencecode:" + codeSentence(words) + "\n"
+				+"linecode:" + codeLine(lines) + "\n"
+				+"project_feature:" + verticalProjectFea(img, lines, 10, 20);
+	
+	cvReleaseImage(&cvimg);
+	pixDestroy(&img);
+	return 1;
 }

@@ -29,6 +29,8 @@ public class PicFeature {
 		String line;
 		feaContent = new HashMap<String, String>();
 		while ((line = reader.readLine()) != null) {
+			if (line.split(":").length != 2)
+				throw new WrongFormatFeaString();
 			feaContent.put(line.split(":")[0], line.split(":")[1]);
 		}
 		reader.close();
