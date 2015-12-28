@@ -46,16 +46,16 @@ public class Main {
 			throws IOException, WraongFormatID {
 		OutputStream out = new FileOutputStream(new File(idfile));
 		if (searchRes.getID() != null) {
-			byte[] id = new byte[128];
+			byte[] id = new byte[16];
 			int i = 0;
 			for (String s: searchRes.getID().split(" ")) {
-				if (i >= 128) {
+				if (i >= 16) {
 					out.close();
 					throw new WraongFormatID();
 				}
 				id[i++] = Byte.parseByte(s);
 			}
-			out.write(id, 0, 128);
+			out.write(id, 0, 16);
 		}
 		out.close();
 		

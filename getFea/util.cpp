@@ -325,7 +325,7 @@ namespace Util {
 			dis = INF;
 			return false;
 		}
-		fread(id, 128, 0, fp);
+		fread(id, 16, 1, fp);
 		fclose(fp);
 		fp = fopen(disfile.c_str(), "r");
 		if (fp == NULL) {

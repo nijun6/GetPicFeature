@@ -38,9 +38,9 @@ public class PicFeature {
 	
 	public PicFeature(Document doc) {
 		String id = doc.get("ID");
-		this.ID = new byte[128];
+		this.ID = new byte[16];
 		String[] idv = id.split(" "); 
-		for (int i = 0; i < 128; i++) {
+		for (int i = 0; i < 16; i++) {
 			this.ID[i] = Byte.parseByte(idv[i]);
 		}
 		
@@ -64,7 +64,7 @@ public class PicFeature {
 	}
 	
 	public PicFeature(String idfile, String feafile) throws IOException, WrongFormatFeaString {
-		byte[] id = getBytesFromFile(idfile, 128);
+		byte[] id = getBytesFromFile(idfile, 16);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(feafile)));
 		String line;
 		StringBuffer fea = new StringBuffer();

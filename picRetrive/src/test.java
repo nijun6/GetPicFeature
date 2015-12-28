@@ -23,7 +23,7 @@ import org.apache.lucene.store.FSDirectory;
 
 public class test {
 	public static void main(String[] args) throws IOException, ParseException, WrongFormatFeaString {
-		testSearch();
+		build();
 	}
 	
 	public static void testSearch() throws IOException, WrongFormatFeaString, ParseException {

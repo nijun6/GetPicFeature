@@ -8,8 +8,10 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
@@ -62,10 +64,12 @@ public class FeaLib {
 	public SearchRes search(PicFeature pf) throws IOException, ParseException {
 		IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
 		QueryParser queryParser = new QueryParser(PicFeature.sentencecode, new StandardAnalyzer());
+		//Term term = new Term(PicFeature.sentencecode, pf.getSentenceCode());
+		//FuzzyQuery fuzzyQuery = new FuzzyQuery(term, pf.getSentenceCode().length()/3);
 		Query query = queryParser.parse(pf.getSentenceCode());
+		
 		IndexReader iReader = searcher.getIndexReader();
 
-		System.out.println("tDocs.numDocs:" + iReader.numDocs());
 		TopDocs tDocs = searcher.search(query, iReader.numDocs()/10 > 0 ? iReader.numDocs()/10 : 10);
 		double similarity = 0.0;
 		PicFeature picFeature = null;

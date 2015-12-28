@@ -71,7 +71,15 @@ bool IF_PicScan::searchFea(const string& fea, ScanResult& sr, const FileInfo& fi
 	fprintf(fp, "%s", fea.c_str());
 	fclose(fp);
 	system("java -jar PicRetrive.jar search featurefile=picfeature lib=.\\picLib\\index");
-	Util::readRes("id", "picfeature", sr.ID_Lib, sr.distance);
+	Util::readRes("id", "picfeature", sr.ID_Lib, sr.distance); 
+	memcpy(sr.ID_File, fileinfo.ID, 16);
+	sr.fileName = fileinfo.fileName;
+
+	if (sr.distance > 10.0) {
+		sr.engine = 0;
+	} else {
+		sr.engine = 2;
+	}
 	return true;
 }
 
@@ -251,7 +259,8 @@ string IF_PicScan::verticalProjectFea(Pix* pix, Boxa* reginos, int scale_factor,
 }
 
 bool IF_PicScan::getFeaFromFile(struct FileInfo pf) {
-	IplImage *temp = cvLoadImage((const char*)(pf.fileName.c_str()));
+	IplImage *temp;
+	Util::readImageFromMemory(pf.plainContent, pf.length, temp);
 	if (temp == NULL) {
 		fprintf(stderr, "can not open the image");
 		return 0;

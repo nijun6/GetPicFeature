@@ -24,7 +24,7 @@ typedef enum
 }FILE_TYPE;
 
 struct FileInfo{
-    unsigned char ID[128];      //原始文件的ID
+    unsigned char ID[16];      //原始文件的ID
     string fileName;            //提取出来的子文件名
     unsigned char *plainContent;//提取出来的内容缓冲区
     int length;                 //plainContent的长度
@@ -32,15 +32,15 @@ struct FileInfo{
 };
 
 struct ScanResult{
-    unsigned char ID_File[128]; //被检测的原始文件的ID
+    unsigned char ID_File[16]; //被检测的原始文件的ID
     string fileName;            //被检测的子文件名
-    unsigned char ID_Lib[128];  //匹配到的文件的ID
+    unsigned char ID_Lib[16];  //匹配到的文件的ID
 	float distance;
     int engine;                 //匹配模块标识，1为文本，2为图片
 };
 
 struct MetaInfo{
-    unsigned char ID[128];  //原始文件的ID
+    unsigned char ID[16];  //原始文件的ID
     //string identify;
     //***
     //***
