@@ -1,3 +1,5 @@
+#ifdef WIN32
+
 #include "IF_PicScan.h"
 #include "algorithm"
 #include "io.h"
@@ -118,3 +120,69 @@ void getFiles( string path, vector<string>& files )
 	}
 }
 
+#else
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <vector>
+#include <string>
+#include <iostream>
+#include "util.h"
+
+using namespace std;
+
+int readFileList(char *basePath, vector<string>& files)
+{
+	DIR *dir;
+	struct dirent *ptr;
+	char base[1000];
+
+	if ((dir=opendir(basePath)) == NULL)
+	{
+		perror("Open dir error...");
+		exit(1);
+	}
+
+	while ((ptr=readdir(dir)) != NULL)
+	{
+		if(strcmp(ptr->d_name,".")==0 || strcmp(ptr->d_name,"..")==0)    ///current dir OR parrent dir
+			continue;
+		else if(ptr->d_type == 8) {    ///file
+			string dir = basePath;
+			files.push_back(dir+"/"+ptr->d_name);
+		}
+		else if(ptr->d_type == 10) {    ///link file
+			//printf("d_name:%s/%s\n",basePath,ptr->d_name);
+		}
+		else if(ptr->d_type == 4)    ///dir
+		{
+			memset(base,'\0',sizeof(base));
+			strcpy(base,basePath);
+			strcat(base,"/");
+			strcat(base,ptr->d_name);
+			vector<string> subfiles;
+			readFileList(base, subfiles);
+			for (int i = 0; i < subfiles.size(); i++)
+				files.push_back(subfiles[i]);
+		}
+	}
+	closedir(dir);
+	return 1;
+}
+
+int main(int argc, char** argv) {
+	if (argc < 2) {
+		fprintf(stderr, "too less parameters\n");
+		return -1;
+	}
+	IplImage* cvimg = cvLoadImage(argv[1]);
+	IplImage* temp = cvCreateImage(cvimg->width, cvimg->height, IPL_);
+	//Pix* pix = Util::getPixFromImage(cvimg);
+
+	return 0;
+}
+
+#endif

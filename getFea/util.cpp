@@ -303,10 +303,13 @@ namespace Util {
 		}
 		#define S(image,x,y) ((uchar*)(image->imageData + image->widthStep*(y)))[(x)]
 		Pix* pix = pixCreate(cvimg->width, cvimg->height, 8);
-		for (int x = 0; x < cvimg->width; x++) {
+		/*for (int x = 0; x < cvimg->width; x++) {
 			for (int y = 0; y < cvimg->height; y++) {
 				pixSetPixel(pix, x, y, S(cvimg, x, y));
 			}
+		}*/
+		for (int y = 0; y < cvimg->height; y++) {
+			memcpy(pix->data + y * pix->wpl, cvimg->imageData + y * cvimg->widthStep, cvimg->width);
 		}
 		return pix;
 	}
