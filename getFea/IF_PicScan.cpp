@@ -258,6 +258,59 @@ string IF_PicScan::verticalProjectFea(Pix* pix, Boxa* reginos, int scale_factor,
 	return res;
 }
 
+string IF_PicScan::getWordFea(Pix* pix, Boxa* words) {
+	string res;
+	for (int i = 0; i < words->n; i++) {
+		Box* b = boxaGetBox(words, i, L_CLONE);
+		Pix* word = Util::getRange(pix, b);
+		res += Util::codeToText(getVerticalLine(word)*5 + getHLineCnt(word));
+	}
+}
+
+int IF_PicScan::getVLineCnt(Pix* word) {
+	int col_cnt[max_img_width] = {};
+	unsigned int v;
+	double ave_pix_black = 0;
+	int cnt = 0;
+	for (int x = 0; x < word->width; x++) {
+		for (int y = 0; y < word->height; y++) {
+			pixGetPixel(word, x, y, &v);
+			col_cnt[x] += 255 - v;
+			if (255 - v > 180) {
+				ave_pix_black += 255 - v;
+				cnt++;
+			}
+		}
+	}
+	ave_pix_black /= cnt;
+	for (int i = 0; i < word->width; i++)
+		col_cnt[i] /= ave_pix_black;
+
+	return Util::getPeakCnt(col_cnt, word->width, word->height);
+}
+
+int IF_PicScan::getHLineCnt(Pix* word) {
+	int col_cnt[max_img_width] = {};
+	unsigned int v;
+	double ave_pix_black = 0;
+	int cnt = 0;
+	for (int x = 0; x < word->width; x++) {
+		for (int y = 0; y < word->height; y++) {
+			pixGetPixel(word, x, y, &v);
+			col_cnt[y] += 255 - v;
+			if (255 - v > 180) {
+				ave_pix_black += 255 - v;
+				cnt++;
+			}
+		}
+	}
+	ave_pix_black /= cnt;
+	for (int i = 0; i < word->width; i++)
+		col_cnt[i] /= ave_pix_black;
+
+	return Util::getPeakCnt(col_cnt, word->width, word->height);
+}
+
 bool IF_PicScan::getFeaFromFile(struct FileInfo pf) {
 	IplImage *temp;
 	Util::readImageFromMemory(pf.plainContent, pf.length, temp);

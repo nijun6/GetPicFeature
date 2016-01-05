@@ -25,19 +25,19 @@ namespace Util {
 	const float INF = 1e38;
 
 	/*
-	fuction: convert FreeImage format to Iplimage format
+		fuction: convert FreeImage format to Iplimage format
 	*/
 	bool FIBITMAP2IplImage(FIBITMAP *dib, IplImage* &iplImg);
 
 	/*
-	功能从内存中读取Iplimage的图像数据
-	input：
-	bytes: memory pointer
-	length: memory size
+		功能从内存中读取Iplimage的图像数据
+		input：
+		bytes: memory pointer
+		length: memory size
 
-	out:
-	src :  out image
-	return：true if sucess else false
+		out:
+		src :  out image
+		return：true if sucess else false
 	*/
 	bool readImageFromMemory(unsigned char* bytes, int length, IplImage* &src);
 
@@ -60,5 +60,7 @@ namespace Util {
 	bool readRes(string idfile, string disfile, unsigned char* id, float& dis);
 
 	void converPaht2Filename(string& name, const string& path);
+
+	int getPeakCnt(int* a, int n, int unit, double peak_thresh);
 }
 #endif

@@ -340,4 +340,44 @@ namespace Util {
 		fclose(fp);
 		return true;
 	}
+
+
+	int getPeakCnt(int* a, int n, int unit, double peak_thresh) {
+		int cnt = 0;
+		for (int i = 0; i < n; i++) {
+			if (a[i] - a[i+1] > unit*peak_thresh)
+				cnt++;
+		}
+		return cnt;
+		/*vector<int> cnt;
+		for (int w = unit*0.3; w >= 1; w *= 0.7) {
+			int tcnt = 0;
+			int c = 0, p = 0;
+			for (int i = 0; i < w; i++) {
+				c += a[i];
+				if (w + i < n)
+					p += a[w+i];
+			}
+			c /= w;
+			p /= w;
+			int last_cnt = 0;
+			if (c - p >= unit * peak_thresh) {
+				last_cnt = 1;
+				tcnt++;
+			}
+			for (int i = 1; i < n-w; i++) {
+				c = (c*w - a[i-1] + a[i]) / w;
+				if (w + i < n)
+					p = (p*w - a[i+w-1] + a[i+w]) / w;
+				if (c - p > unit * peak_thresh && last_cnt == 0) {
+					last_cnt = 1;
+					tcnt++;
+				} else if (c - p <= unit * peak_thresh){
+					last_cnt = 0;
+				}
+			}
+			cnt.push_back(tcnt);
+		}
+	*/
+	}
 }

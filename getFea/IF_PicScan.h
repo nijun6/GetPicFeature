@@ -35,6 +35,9 @@ private:
 	string codeSentence(Boxa* words);
 	string codeLine(Boxa* lines);
 	string verticalProjectFea(Pix* pix, Boxa* reginos, int scale_factor, int word_height);
+	string getWordFea(Pix* pix, Boxa* words);
+	int getVLineCnt(Pix* word);
+	int getHLineCnt(Pix* word);
 
 	int averWordsGap(Boxa* words);
 };
