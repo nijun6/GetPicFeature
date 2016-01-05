@@ -11,11 +11,7 @@ public class Main {
 					, WrongFormatFeaString
 					, InterruptedException
 					, ParseException, WrongFomatArgs, WraongFormatID {
-		System.out.println("java picfeature lib started");
-		System.out.println("args.length = " + args.length);
-		for (String s: args) {
-			System.out.println(s);
-		}
+		
 		if (args.length == 3 && args[0].equals("dumpfea")) {
 			PicFeature picFeature = null;
 			if (args[1].startsWith("idfile=") && args[2].startsWith("featurefile=")) {
@@ -49,17 +45,20 @@ public class Main {
 	private static void saveFea(SearchRes searchRes, String idfile, String feafile) 
 			throws IOException, WraongFormatID {
 		OutputStream out = new FileOutputStream(new File(idfile));
-		byte[] id = new byte[128];
-		int i = 0;
-		for (String s: searchRes.getID().split(" ")) {
-			if (i >= 128) {
-				out.close();
-				throw new WraongFormatID();
+		if (searchRes.getID() != null) {
+			byte[] id = new byte[16];
+			int i = 0;
+			for (String s: searchRes.getID().split(" ")) {
+				if (i >= 16) {
+					out.close();
+					throw new WraongFormatID();
+				}
+				id[i++] = Byte.parseByte(s);
 			}
-			id[i++] = Byte.parseByte(s);
+			out.write(id, 0, 16);
 		}
-		out.write(id, 0, 128);
 		out.close();
+		
 		out = new FileOutputStream(new File(feafile));
 		byte[] bs = Double.toString(searchRes.getDistance()).getBytes();
 		out.write(bs, 0, bs.length);

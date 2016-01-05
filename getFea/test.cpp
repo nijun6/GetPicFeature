@@ -2,7 +2,9 @@
 
 #include "IF_PicScan.h"
 #include "algorithm"
+#include "util.h"
 #include "io.h"
+#include "opencv2/highgui/highgui.hpp"
 
 bool GetAllFilesList(string file_path,
 	vector<string> &files_list, 
@@ -30,7 +32,6 @@ void testExtract() {
 		FileInfo fi;
 		if (getFileInfo((char*)fileslist[i].c_str(), fi)) {
 			feaGet.extractFeature(fi);
-			feaGet.dumpFeature(fi);
 		}
 	}
 }
@@ -38,23 +39,61 @@ void testExtract() {
 void testSearch() {
 	IF_PicScan feaGet(".\\picLib");
 	vector<string> fileslist;
-	getFiles("D:\\NJ\\pictures\\libpic", fileslist);
+	//getFiles("D:\\NJ\\pictures\\libpic", fileslist);
+	getFiles("D:\\test\\fiterTest", fileslist);
 	sort(fileslist.begin(), fileslist.end());
 	for (int i = 0; i < fileslist.size(); i++) {
 		FileInfo fi;
 		if (getFileInfo((char*)fileslist[i].c_str(), fi)) {
-			feaGet.extractFeature(fi);
 			ScanResult sr;
-			feaGet.searchFea(feaGet.fea, sr, fi);
+			sr = feaGet.matchFeature(fi);
 			cout << "search result: " << sr.distance << endl;
 		}
 	}
 }
 
+void testReadFromMemory() {
+	vector<string> fileslist;
+	getFiles("D:\\NJ\\pictures\\libpic", fileslist);
+	sort(fileslist.begin(), fileslist.end());
+	for (int i = 0; i < fileslist.size(); i++) {
+		cout << fileslist[i] << endl;
+		IplImage* temp;
+		FileInfo pf;
+		if (getFileInfo((char*)fileslist[i].c_str(), pf)) {
+			Util::readImageFromMemory(pf.plainContent, pf.length, temp);
+			string filename = fileslist[i].substr(0, fileslist[i].find_last_of('\\')) + "\\000" +
+				fileslist[i].substr(fileslist[i].find_last_of('\\'));
+			cvSaveImage(filename.c_str(), temp);
+			cvReleaseImage(&temp);
+		}
+	}
+}
+
+void testReadWriteFromMemory() {
+	vector<string> files;
+	getFiles("D:\\NJ\\pictures\\libpic", files);
+	for (int i = 0; i < files.size(); i++) {
+		FileInfo fi;
+		getFileInfo((char*)files[i].c_str(), fi);
+		string filename = files[i].substr(0, files[i].find_last_of('\\')) + "\\000" +
+			files[i].substr(files[i].find_last_of('\\'));
+		FILE* fp = fopen(filename.c_str(), "wb");
+		if (fp == NULL)  {
+			fprintf(stderr, "Can not open the file\n");
+			continue;
+		}
+		int count = fwrite(fi.plainContent, 1, fi.length, fp);
+		cout << filename + " write " << cout << " blocks" << endl;
+		fclose(fp);
+	}
+}
+
 int main(int argc, char** argv) {
+	//testReadFromMemory();
 	//test333();
-	testExtract();
-	//testSearch();
+	//testExtract();
+	testSearch();
 
 	return 0;
 }
@@ -82,13 +121,13 @@ bool getFileInfo(char* filename, FileInfo& fileInfo) {
 	fileInfo.plainContent = new unsigned char[len];
 	fileInfo.length = len;
 	fseek(fp, 0, SEEK_SET);
-	fread(fileInfo.plainContent, 1024*8, len/1024/8+1, fp);
+	fread(fileInfo.plainContent, 1, len, fp);
 	fclose(fp);
 	int id[32];
-	for (int i = 0; i < 32; i++) {
+	for (int i = 0; i < 4; i++) {
 		id[i] = (int)(fileInfo.plainContent + i*4);
 	}
-	memcpy(fileInfo.ID, id, 128);
+	memcpy(fileInfo.ID, id, 16);
 	fileInfo.plainType = 1;
 	return true;
 }
